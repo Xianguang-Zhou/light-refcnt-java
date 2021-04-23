@@ -17,6 +17,7 @@
 package org.zxg.gc.refcnt;
 
 import java.io.Closeable;
+import java.lang.reflect.Field;
 import java.util.LinkedList;
 
 /**
@@ -46,6 +47,21 @@ public final class Scope implements Closeable {
 			RefCnt rc = (RefCnt) obj;
 			stack.get().get(1).resources.addFirst(rc);
 			rc._incRef();
+		}
+	}
+
+	@SuppressWarnings("resource")
+	public static void afterFieldRead(Object value) {
+		if (value instanceof RefCnt) {
+			RefCnt rc = (RefCnt) value;
+			stack.get().getFirst().resources.addFirst(rc);
+			rc._incRef();
+		}
+	}
+
+	public static void afterFieldGet(Field field, Object value) {
+		if (field.getDeclaredAnnotation(WeakRef.class) == null) {
+			afterFieldRead(value);
 		}
 	}
 
